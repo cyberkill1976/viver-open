@@ -18,7 +18,7 @@
 <p id="btns"></p>
 <script>
   var CLOSE_DELAY_MS = 1500;
-  var USE_DRAFT = true;   // спробувати передати текст параметром draft
+  var USE_DRAFT = false;   // спробувати передати текст параметром draft
 
   var params = new URLSearchParams(location.hash.slice(1));
   var n = (params.get('n') || '').replace(/\D/g, '');
