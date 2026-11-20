@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Відкрити Viber</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin-top: 60px; }
+  a.btn { display: inline-block; margin: 8px; padding: 12px 20px; background: #7360f2;
+          color: #fff; border-radius: 6px; text-decoration: none; }
+  a.alt { background: #888; }
+</style>
+</head>
+<body>
+<h3 id="title">Відкриваю Viber…</h3>
+<p id="num"></p>
+<p id="btns"></p>
+<script>
+  // номер береться з частини після # (вона не передається на сервер)
+  var n = (location.hash || '').replace(/\D/g, '');
+  var title = document.getElementById('title');
+
+  if (n.length >= 11 && n.length <= 15) {
+    var withPlus = 'viber://chat?number=%2B' + n;
+    var noPlus = 'viber://chat?number=' + n;
+    document.getElementById('num').textContent = '+' + n;
+    document.getElementById('btns').innerHTML =
+      '<a class="btn" href="' + withPlus + '">Відкрити Viber</a>' +
+      '<a class="btn alt" href="' + noPlus + '">Варіант без +</a>';
+    location.href = withPlus;
+  } else {
+    title.textContent = 'Номер не вказано або він некоректний';
+  }
+</script>
+</body>
+</html>
