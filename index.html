@@ -8,7 +8,6 @@
   body { font-family: Arial, sans-serif; text-align: center; margin-top: 60px; }
   a.btn { display: inline-block; margin: 8px; padding: 12px 20px; background: #7360f2;
           color: #fff; border-radius: 6px; text-decoration: none; }
-  a.alt { background: #888; }
 </style>
 </head>
 <body>
@@ -16,18 +15,26 @@
 <p id="num"></p>
 <p id="btns"></p>
 <script>
-  // номер береться з частини після # (вона не передається на сервер)
+  var CLOSE_DELAY_MS = 1500;   // скільки чекати перед закриттям вкладки
+
   var n = (location.hash || '').replace(/\D/g, '');
   var title = document.getElementById('title');
 
   if (n.length >= 11 && n.length <= 15) {
-    var withPlus = 'viber://chat?number=%2B' + n;
-    var noPlus = 'viber://chat?number=' + n;
+    var url = 'viber://chat?number=' + n;
     document.getElementById('num').textContent = '+' + n;
     document.getElementById('btns').innerHTML =
-      '<a class="btn" href="' + withPlus + '">Відкрити Viber</a>' +
-      '<a class="btn alt" href="' + noPlus + '">Варіант без +</a>';
-    location.href = withPlus;
+      '<a class="btn" href="' + url + '">Відкрити Viber</a>';
+
+    location.href = url;
+
+    setTimeout(function () {
+      window.close();
+      // якщо браузер не дозволив закрити вкладку
+      setTimeout(function () {
+        title.textContent = 'Viber відкрито. Цю вкладку можна закрити.';
+      }, 300);
+    }, CLOSE_DELAY_MS);
   } else {
     title.textContent = 'Номер не вказано або він некоректний';
   }
