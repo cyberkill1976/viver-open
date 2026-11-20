@@ -5,36 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Відкрити Viber</title>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; margin-top: 60px; }
-  a.btn { display: inline-block; margin: 8px; padding: 12px 20px; background: #7360f2;
-          color: #fff; border-radius: 6px; text-decoration: none; }
+  body { font-family: Arial, sans-serif; text-align: center; margin: 50px auto; max-width: 520px; }
+  .btn { display: inline-block; margin: 8px; padding: 12px 20px; background: #7360f2;
+         color: #fff; border: 0; border-radius: 6px; text-decoration: none; font-size: 15px; cursor: pointer; }
+  #msg { margin: 16px 0; padding: 10px; background: #f4f4f4; border: 1px dashed #bbb;
+         text-align: left; font-size: 14px; white-space: pre-wrap; }
 </style>
 </head>
 <body>
 <h3 id="title">Відкриваю Viber…</h3>
-<p id="num"></p>
+<div id="msg" hidden></div>
 <p id="btns"></p>
 <script>
-  var CLOSE_DELAY_MS = 1500;   // скільки чекати перед закриттям вкладки
+  var CLOSE_DELAY_MS = 1500;
+  var USE_DRAFT = true;   // спробувати передати текст параметром draft
 
-  var n = (location.hash || '').replace(/\D/g, '');
+  var params = new URLSearchParams(location.hash.slice(1));
+  var n = (params.get('n') || '').replace(/\D/g, '');
+  var text = params.get('t') || '';
   var title = document.getElementById('title');
+  var msgBox = document.getElementById('msg');
+  var btns = document.getElementById('btns');
+
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).then(function () { return true; })
+        .catch(function () { return legacyCopy(t); });
+    }
+    return Promise.resolve(legacyCopy(t));
+  }
+  function legacyCopy(t) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
 
   if (n.length >= 11 && n.length <= 15) {
     var url = 'viber://chat?number=' + n;
-    document.getElementById('num').textContent = '+' + n;
-    document.getElementById('btns').innerHTML =
-      '<a class="btn" href="' + url + '">Відкрити Viber</a>';
+    if (USE_DRAFT && text) url += '&draft=' + encodeURIComponent(text);
 
-    location.href = url;
+    if (text) { msgBox.hidden = false; msgBox.textContent = text; }
+    btns.innerHTML = '<a class="btn" href="' + url + '">Відкрити Viber</a>' +
+      (text ? '<button class="btn" id="cp">Копіювати текст</button>' : '');
+    if (text) {
+      document.getElementById('cp').onclick = function () {
+        copyText(text).then(function (ok) { this.textContent = ok ? 'Скопійовано' : 'Не вдалося'; }.bind(this));
+      };
+    }
 
-    setTimeout(function () {
-      window.close();
-      // якщо браузер не дозволив закрити вкладку
-      setTimeout(function () {
-        title.textContent = 'Viber відкрито. Цю вкладку можна закрити.';
-      }, 300);
-    }, CLOSE_DELAY_MS);
+    (text ? copyText(text) : Promise.resolve(true)).then(function (copied) {
+      location.href = url;
+      if (copied) {
+        title.textContent = 'Viber відкрито. У чаті натисніть Ctrl+V, щоб вставити текст.';
+        setTimeout(function () { window.close(); }, CLOSE_DELAY_MS);
+      } else {
+        title.textContent = 'Viber відкрито. Скопіюйте текст кнопкою нижче і вставте в чат.';
+      }
+    });
   } else {
     title.textContent = 'Номер не вказано або він некоректний';
   }
